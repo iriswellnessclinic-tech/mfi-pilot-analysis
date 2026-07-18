@@ -1,0 +1,12 @@
+# Python 3.9.6
+# Exact versions used for the frozen n=116 analyses (data cut 18 July 2026).
+numpy==2.0.2
+pandas==2.3.3
+scipy==1.13.1
+scikit-learn==1.6.1
+factor_analyzer==0.5.1
+matplotlib==3.9.4
+# statsmodels is intentionally NOT used; OLS/VIF/Cook's D/bootstrap are hand-implemented.
+#
+# Extraction step (extraction/mfi_full_analysis.ts) runs under Node with:
+#   tsx (TypeScript execute) against the pseudonymized study database.

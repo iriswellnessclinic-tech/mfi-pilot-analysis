@@ -1,0 +1,6 @@
+mfi_matrix.csv
+mfi_funnel.csv
+*.csv
+mfi_tables.html
+__pycache__/
+*.pyc
