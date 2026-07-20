@@ -2,13 +2,16 @@
 
 Analysis code and documentation for the study:
 
-> **Beyond headache days: Initial development and exploratory psychometric evaluation of the Migraine Freedom Index using linked daily digital-diary data**
+> **Beyond headache days: an exploratory linked digital-diary study of life restoration and the proposed Migraine Freedom Index**
 > (cross-sectional digital-health pilot, frozen dataset n = 116, data cut 18 July 2026)
 
-This repository is provided for **transparency and independent re-analysis**. The
-application operator is also the first author, data custodian, and analyst; to
-mitigate this conflict of interest, the analysis plan was prespecified and dated,
-and the analysis code and the frozen-dataset definition are shared here.
+This repository is provided for **transparency and to facilitate future independent
+verification**. The application operator is also the first author, data custodian,
+and analyst; to mitigate this conflict of interest, the analysis plan was dated,
+and the analysis code and the frozen-dataset definition are shared here. This study
+is exploratory and hypothesis-generating: it does not validate a finished
+patient-reported outcome measure, and the two dimensions are reported as a
+provisional profile rather than established scales.
 
 ## What is (and is not) here
 
@@ -33,10 +36,12 @@ npx tsx extraction/mfi_full_analysis.ts
 # 2) Run the analyses (from the directory holding the two CSVs).
 #    statsmodels is intentionally not used; OLS etc. are implemented directly.
 python3 analysis/mfi_rev_efa.py     # parallel analysis, omega, bootstrap loadings, domain-corr
-python3 analysis/mfi_rev_reg.py     # continuous regression, incremental value, density sensitivity
+python3 analysis/mfi_rev_reg.py     # continuous regression, exploratory wellbeing model, density sensitivity
 python3 analysis/mfi_rev_desc.py    # descriptives, validity table, funnel, 2x2 discordance
+python3 analysis/rev9_analysis.py   # funnel reconciliation, missing-item rule, recording-density controls,
+                                    #   partial/adjusted models for the second profile, Figure 3 diagnostics
 python3 analysis/mfi_rev_tables.py  # Tables 1-4 (HTML)
-FIG_DPI=300 python3 analysis/mfi_rev_figs.py  # Figures 1-3 (300 dpi)
+FIG_DPI=300 python3 analysis/mfi_rev_figs.py  # Figures 1-3 + Supplementary Figure S1 (300 dpi)
 ```
 
 See [`ANALYSIS_PLAN.md`](ANALYSIS_PLAN.md), [`data_dictionary.md`](data_dictionary.md),
