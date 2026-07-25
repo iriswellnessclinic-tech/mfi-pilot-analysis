@@ -32,7 +32,7 @@ arrow(3.2,6.6,6.3,6.6)
 # nested linked subsets (each a subset of the one above)
 box(3.2,3.9,4.4,0.8,"≥1 recorded diary day\nn = 108",fc="#E8F6F0",ec=GREEN,fs=8.0)
 box(3.2,2.5,4.4,0.8,"≥7 diary days (primary linked)\nn = 81",fc="#E8F6F0",ec=GREEN,fs=8.0)
-box(3.2,1.1,4.4,0.8,"Exploratory wellbeing-model subset\nn = 75",fc="#E8F6F0",ec=GREEN,fs=8.0)
+box(3.2,1.1,4.4,0.8,"Exploratory fulfillment-model subset\nn = 75",fc="#E8F6F0",ec=GREEN,fs=8.0)
 arrow(3.2,5.2,3.2,4.3); arrow(3.2,3.5,3.2,2.9); arrow(3.2,2.1,3.2,1.5)
 ax.text(8.05,3.0,"Frozen data cut:\n18 July 2026 (00:00 JST)",ha="center",fontsize=7.6,style="italic",color=GRAY)
 ax.set_title("Figure 1. Study flow and nested linked-data subsets",fontsize=10,loc="left",weight="bold")
@@ -40,8 +40,8 @@ plt.tight_layout(); plt.savefig("fig1_flow.png",bbox_inches="tight"); plt.close(
 
 # ============ Figure 2: provisional 2-factor loadings + bootstrap 95% CI ============
 DOMS=[f'dom{i+1}' for i in range(11)]
-EN=['Premonitory symptom awareness','Trigger recognition','Pre-emptive action','Attack control',
-    'Prevention of medication overuse','Freedom of activity','Hope & treatment continuity','Life restoration',
+EN=['Premonitory-symptom awareness','Trigger recognition','Pre-emptive action','Attack control',
+    'Prevention of medication overuse','Freedom of activity','Hope and treatment continuity','Reclaiming your life',
     'Social freedom','Impact on close others','Global freedom evaluation']
 X=D[DOMS].apply(pd.to_numeric,errors='coerce').dropna()
 Xv=X.values
@@ -49,7 +49,7 @@ def fit_load(mat):
     fa=FactorAnalyzer(n_factors=2,method='principal',rotation='oblimin'); fa.fit(mat)
     return fa.loadings_.copy()
 L=fit_load(Xv)
-if abs(L[7,0])<abs(L[7,1]): L=L[:,::-1]   # F1 = Life Restoration (idx7 loads highest)
+if abs(L[7,0])<abs(L[7,1]): L=L[:,::-1]   # F1 = Life Recovery (idx7 loads highest)
 prim=np.where(np.abs(L[:,0])>=np.abs(L[:,1]),0,1)
 # bootstrap 95% CI of each domain's primary-factor loading (1,000 resamples, aligned to full-sample)
 rng=np.random.default_rng(20260718); B=1000; boot=np.full((B,11,2),np.nan)
@@ -79,8 +79,8 @@ for k,i in enumerate(order):
 ax.set_yticks(yy); ax.set_yticklabels([EN[i] for i in order],fontsize=8.2)
 ax.set_xlim(0,1.05); ax.set_xlabel("Primary pattern loading (principal-axis, oblimin) with bootstrap 95% CI")
 ax.axvline(0,color="k",lw=0.8)
-ax.legend(handles=[Patch(color=BLUE,label="Factor 1 — Life Restoration"),
-                   Patch(color=ORANGE,label="Factor 2 — Migraine Awareness and Management")],
+ax.legend(handles=[Patch(color=BLUE,label="Factor 1 — Life Recovery"),
+                   Patch(color=ORANGE,label="Factor 2 — Awareness and Management")],
           loc="upper center",bbox_to_anchor=(0.5,-0.13),ncol=2,fontsize=8.3,frameon=False)
 ax.set_title("Figure 2. Provisional two-factor summary of 11 prespecified domain scores",fontsize=9.8,loc="left",weight="bold")
 ax.spines[['top','right']].set_visible(False)
@@ -101,12 +101,12 @@ ax.fill_between(xs,yh-ci_mean,yh+ci_mean,color=BLUE,alpha=0.15,label="95% CI of 
 ax.plot(xs,yh,color=BLUE,lw=1.9,label="OLS fit")
 ax.scatter(x,y,s=27,color=GRAY,alpha=0.75,edgecolor="white",linewidth=0.4)
 ax.set_xlabel("Diary headache-day proportion (28-day window)")
-ax.set_ylabel("Candidate Life Restoration score (0-100)")
+ax.set_ylabel("Life Recovery score (0-100)")
 ax.set_xlim(-0.02,1.02); ax.set_ylim(0,100)
 ax.text(0.03,10,f"OLS slope = {b1:.1f}  (95% CI {slope_lo:.1f} to {slope_hi:.1f})\nSpearman ρ = {rho:+.2f};  n = {n}",
         fontsize=8.2,bbox=dict(boxstyle="round",fc="white",ec=GRAY,alpha=0.9))
 ax.legend(loc="upper right",fontsize=8,frameon=False)
-ax.set_title("Figure 3. Diary headache-day proportion vs candidate Life Restoration",fontsize=9.6,loc="left",weight="bold")
+ax.set_title("Figure 3. Diary headache-day proportion vs Life Recovery",fontsize=9.6,loc="left",weight="bold")
 ax.spines[['top','right']].set_visible(False)
 plt.tight_layout(); plt.savefig("fig3_freq_restoration.png",bbox_inches="tight"); plt.close()
 
@@ -129,7 +129,7 @@ for hf in [False,True]:
 axs.axvline(hmed,color="k",ls="--",lw=0.8); axs.axhline(fmed,color="k",ls="--",lw=0.8)
 axs.text(hmed+0.01,2,f"sample median = {hmed:.2f}",fontsize=7.2,color=GRAY)
 axs.text(0.01,fmed+1,f"sample median = {fmed:.1f}",fontsize=7.2,color=GRAY)
-axs.set_xlabel("Diary headache-day proportion"); axs.set_ylabel("Candidate Life Restoration score")
+axs.set_xlabel("Diary headache-day proportion"); axs.set_ylabel("Life Recovery score")
 axs.set_xlim(-0.02,1.02); axs.set_ylim(0,100)
 axs.legend(handles=[Patch(color=ORANGE,label="Discordant (sample-relative)"),Patch(color=GRAY,label="Concordant")],
            loc="lower right",fontsize=7.8,frameon=False)
