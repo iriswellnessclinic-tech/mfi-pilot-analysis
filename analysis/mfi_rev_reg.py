@@ -121,3 +121,38 @@ for lab, th in [('≥1日', 1), ('≥7日', 7), ('≥14日', 14), ('≥21日', 2
     r2, l2, h2, _, _ = spearman_ci(s['total'].values, s['haprop'].values)
     print(f"  {lab:<12}{n1:>4}{f'{r1:+.2f}[{l1:+.2f},{h1:+.2f}]':>26}{f'{r2:+.2f}[{l2:+.2f},{h2:+.2f}]':>26}")
 print("  ※ 高頻度患者ほど無頭痛日が少なく充実度の観測日が減る（頻度条件づき選択バイアス）→Limitationに明記。")
+
+# ---------- ④ 記録行動アーティファクト検証 + 年齢・性別調整（Supplementary S3e）----------
+print("\n【④ 記録アーティファクト検証・調整モデル・年齢性別調整（S3e）】")
+from scipy.stats import rankdata
+def pspear(x, y, z):
+    rx, ry, rz = rankdata(x), rankdata(y), rankdata(z)
+    Z = np.column_stack([np.ones(len(rz)), rz])
+    ex = rx - Z @ np.linalg.lstsq(Z, rx, rcond=None)[0]
+    ey = ry - Z @ np.linalg.lstsq(Z, ry, rcond=None)[0]
+    return np.corrcoef(ex, ey)[0, 1]
+e = pd.DataFrame({'f1': num('f1'), 'f2': num('f2'), 'haprop': num('w28_haprop'),
+                  'wdays': num('w28_days'), 'mmd': num('mig_days'), 'prev': num('prev_use'), 'age': num('age')})
+e['female'] = (num('sex') == 1).astype(float)
+rec = e[e['wdays'] >= 1].copy()
+for lab, col in [('F1', 'f1'), ('F2', 'f2')]:
+    s = rec.dropna(subset=[col, 'wdays']); r, lo, hi, p, nn = spearman_ci(s['wdays'].values, s[col].values)
+    print(f"  記録日数↔{lab}: rho={r:+.2f} p={p:.3f} (n={nn})")
+s = rec.dropna(subset=['wdays', 'haprop']); r, lo, hi, p, nn = spearman_ci(s['wdays'].values, s['haprop'].values)
+print(f"  記録日数↔haprop: rho={r:+.2f} p={p:.3f} (n={nn})")
+b7 = e[e['wdays'] >= 7].dropna(subset=['haprop']).copy()
+print(f"  F1↔haprop 偏|記録日数: rho={pspear(b7['f1'], b7['haprop'], b7['wdays']):+.2f} (n={len(b7)})")
+print(f"  F2↔haprop 偏|記録日数: rho={pspear(b7['f2'], b7['haprop'], b7['wdays']):+.2f}")
+for lab, y in [('F1', 'f1'), ('F2', 'f2')]:
+    m = ols(y, ['haprop', 'wdays', 'mmd', 'prev'], b7)
+    print(f"  [{lab} 調整(記録日数/MMD/予防薬)] " + " ".join(f"{c} b*={m['std_beta'][j]:+.2f}(p={m['p'][j+1]:.3f})" for j, c in enumerate(m['Xcols'])) + f" n={m['n']}")
+    m2 = ols(y, ['haprop', 'wdays', 'mmd', 'prev', 'age', 'female'], b7)
+    print(f"  [{lab} +年齢+性別]          " + " ".join(f"{c} b*={m2['std_beta'][j]:+.2f}(p={m2['p'][j+1]:.3f})" for j, c in enumerate(m2['Xcols'])) + f" n={m2['n']}")
+
+# ---------- ⑤ 薬剤特異的サブグループの収束的妥当性（Life Recovery）----------
+print("\n【⑤ 薬剤特異的サブグループ(n=62) Life Recovery 収束的妥当性】")
+sub_mask = (num('drug_specific') == 1)
+for lab, x in [('MIDAS', 'midas'), ('MIBS-4', 'mibs4')]:
+    s = pd.DataFrame({'f1': num('f1'), 'x': num(x)})[sub_mask].dropna()
+    r, lo, hi, p, nn = spearman_ci(s['f1'].values, s['x'].values)
+    print(f"  Life Recovery↔{lab}: rho={r:+.2f} [{lo:+.2f},{hi:+.2f}] p={p:.3f} (n={nn})")
