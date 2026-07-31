@@ -149,10 +149,10 @@ for lab, y in [('F1', 'f1'), ('F2', 'f2')]:
     m2 = ols(y, ['haprop', 'wdays', 'mmd', 'prev', 'age', 'female'], b7)
     print(f"  [{lab} +年齢+性別]          " + " ".join(f"{c} b*={m2['std_beta'][j]:+.2f}(p={m2['p'][j+1]:.3f})" for j, c in enumerate(m2['Xcols'])) + f" n={m2['n']}")
 
-# ---------- ⑤ 薬剤特異的サブグループの収束的妥当性（Life Recovery）----------
-print("\n【⑤ 薬剤特異的サブグループ(n=62) Life Recovery 収束的妥当性】")
+# ---------- ⑤ 薬剤特異的サブグループの収束的妥当性（Life Restoration）----------
+print("\n【⑤ 薬剤特異的サブグループ(n=62) Life Restoration 収束的妥当性】")
 sub_mask = (num('drug_specific') == 1)
 for lab, x in [('MIDAS', 'midas'), ('MIBS-4', 'mibs4')]:
     s = pd.DataFrame({'f1': num('f1'), 'x': num(x)})[sub_mask].dropna()
     r, lo, hi, p, nn = spearman_ci(s['f1'].values, s['x'].values)
-    print(f"  Life Recovery↔{lab}: rho={r:+.2f} [{lo:+.2f},{hi:+.2f}] p={p:.3f} (n={nn})")
+    print(f"  Life Restoration↔{lab}: rho={r:+.2f} [{lo:+.2f},{hi:+.2f}] p={p:.3f} (n={nn})")

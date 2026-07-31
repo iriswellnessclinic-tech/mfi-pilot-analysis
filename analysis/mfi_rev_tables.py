@@ -11,7 +11,7 @@ num = lambda c: pd.to_numeric(D[c], errors='coerce')
 DOMS = ['脳状態遷移','トリガー認識','先制行動','発作コントロール','MOH予防','活動の自由','希望と治療継続','人生回復','社会的自由','身近な人への影響','総合評価']
 DOM_EN = ['Premonitory-symptom awareness','Trigger recognition','Pre-emptive action','Attack control','Prevention of medication overuse','Freedom of activity','Hope and treatment continuity','Reclaiming your life','Social freedom','Impact on close others','Global freedom evaluation']
 FAC = ['Agency','Agency','Agency','Restoration','Agency','Restoration','Restoration','Restoration','Restoration','Restoration','Restoration']
-FAC_DISP = {'Restoration':'Life Recovery','Agency':'Awareness and Management'}
+FAC_DISP = {'Restoration':'Life Restoration','Agency':'Awareness and Management'}
 qcols = [c for c in D.columns if c.startswith('q') and '_' in c and c[1:].split('_')[0].isdigit()]
 
 def alpha(items):
@@ -69,7 +69,7 @@ t1=tbl(["Characteristic","Value"],[
 
 # ---- Table 2 ----
 t2a=tbl(["Factor","Items","Cronbach α","McDonald ω"],[
- ["Life Recovery", len(f1i), f"{alpha(f1i):.2f}", f"{omega(f1i):.2f}"],
+ ["Life Restoration", len(f1i), f"{alpha(f1i):.2f}", f"{omega(f1i):.2f}"],
  ["Awareness and Management", len(f2i), f"{alpha(f2i):.2f}", f"{omega(f2i):.2f}"],
  ["Total (auxiliary)", len(qcols), f"{alpha(qcols):.2f}", "—"]])
 domrows=[]
@@ -86,8 +86,8 @@ ext=[('MIDAS (disability)','&minus;', num('midas')),
      ('MIBS-4 (interictal burden)','&minus; (F1) / + (F2)', num('mibs4')),
      ('Self-reported migraine days','weak &minus; / + (F2)', num('mig_days')),
      ('Diary headache-day proportion (28d, &ge;7d)','&minus;', hap),
-     ('Diary fulfillment on headache-free days (28d)','+', ful)]
-t3=tbl(["External measure","Prespecified direction","Total (auxiliary)","Life Recovery","Awareness and Management"],
+     ('Diary fulfilment on headache-free days (28d)','+', ful)]
+t3=tbl(["External measure","Prespecified direction","Total (auxiliary)","Life Restoration","Awareness and Management"],
        [[lab,dirn,sp(tot,y),sp(f1,y),sp(f2,y)] for lab,dirn,y in ext])
 
 # ---- Table 4 ----
@@ -98,8 +98,8 @@ def g(hf,hr):
     x=sub[(sub['hf']==hf)&(sub['hr']==hr)]
     def mi(col): v=x[col].dropna().values; return f"{np.median(v):.0f} ({np.percentile(v,25):.0f}–{np.percentile(v,75):.0f})"
     return len(x),mi('midas'),mi('f2')
-L={(False,True):'Lower proportion / higher Life Recovery (concordant)',(True,False):'Higher proportion / lower Life Recovery (concordant)',
-   (False,False):'Lower proportion / lower Life Recovery (DISCORDANT)',(True,True):'Higher proportion / higher Life Recovery (DISCORDANT)'}
+L={(False,True):'Lower proportion / higher Life Restoration (concordant)',(True,False):'Higher proportion / lower Life Restoration (concordant)',
+   (False,False):'Lower proportion / lower Life Restoration (DISCORDANT)',(True,True):'Higher proportion / higher Life Restoration (DISCORDANT)'}
 rows4=[];disc=0
 for k in [(False,True),(True,False),(False,False),(True,True)]:
     n_,md,f2m=g(*k)
@@ -112,7 +112,7 @@ html=f"""<h2>MFI (Cephalalgia Rev3) — Tables 1–4</h2>
 <h3>Table 1. Participant characteristics (N={N})</h3>{t1}
 <h3>Table 2. Internal consistency (N={N})</h3><p>By higher-order factor (primary):</p>{t2a}<p>By prespecified domain:</p>{t2b}
 <h3>Table 3. Convergent and diary-linked validity — Spearman ρ [95% CI], p</h3>{t3}
-<h3>Table 4. Secondary sample-median-split discordance (linked n={len(sub)}; splits: headache-day proportion {hmed:.2f}, Life Recovery {fmed:.0f})</h3>{t4}
+<h3>Table 4. Secondary sample-median-split discordance (linked n={len(sub)}; splits: headache-day proportion {hmed:.2f}, Life Restoration {fmed:.0f})</h3>{t4}
 <p>Discordant total = {disc}/{len(sub)} ({100*disc/len(sub):.0f}%). Sample-relative and descriptive; splits are not clinical thresholds.</p>"""
 open('mfi_tables.html','w').write(html)
 print("wrote mfi_tables.html (", len(html), "bytes )")
