@@ -4,3 +4,7 @@ mfi_funnel.csv
 mfi_tables.html
 __pycache__/
 *.pyc
+# local backups of the participant-level matrices and other working copies
+*.bak*
+*_backup_*
+.DS_Store

@@ -4,7 +4,7 @@
  - median-split を降格し、主解析＝連続回帰（F1/F2/総合 ↔ 28日窓の頭痛日割合）: 傾き・95%CI・予測区間・残差
  - incremental validity（探索的）: DV=28日窓の無頭痛日充実度、M1=頭痛日割合+MIDAS、M2=+F1+F2
    標準化β・VIF・Cook's D・調整R²・F-change p・ΔR²のブートストラップCI・残差正規性(Shapiro)
- - 日誌28日窓の記録日数しきい値（≥7/≥14/≥21/≥80%）で感度解析
+ - 日誌28日窓の記録日数しきい値（≥7/≥14/≥21）で感度解析
 出力: コンソール。
 """
 import numpy as np, pandas as pd
@@ -115,7 +115,7 @@ print(f"  ΔR² ブートストラップ95%CI [{np.percentile(dr,2.5):.3f}, {np.
 # ---------- ③ 日誌28日窓 記録日数しきい値の感度解析 ----------
 print("\n【③ 感度解析: 28日窓の記録日数しきい値別（F1↔頭痛日割合 / 総合↔頭痛日割合）】")
 print(f"  {'しきい値':<12}{'n':>4}{'F1↔haprop ρ[95%CI]':>26}{'総合↔haprop ρ[95%CI]':>26}")
-for lab, th in [('≥1日', 1), ('≥7日', 7), ('≥14日', 14), ('≥21日', 21), ('≥80%(22.4)', 22.4)]:
+for lab, th in [('≥1日', 1), ('≥7日', 7), ('≥14日', 14), ('≥21日', 21)]:
     s = d[d['wdays'] >= th]
     r1, l1, h1, _, n1 = spearman_ci(s['f1'].values, s['haprop'].values)
     r2, l2, h2, _, _ = spearman_ci(s['total'].values, s['haprop'].values)

@@ -2,7 +2,7 @@
 
 Analysis code and documentation for the study:
 
-> **Beyond headache days: an exploratory linked digital-diary study of life restoration and the proposed Migraine Freedom Index**
+> **Development of the Migraine Freedom Index, a patient-reported measure of migraine freedom in daily life: an exploratory linked-diary study**
 > (cross-sectional digital-health pilot, frozen dataset n = 116, data cut 18 July 2026)
 
 This repository is provided for **transparency and to facilitate future independent
@@ -40,9 +40,19 @@ python3 analysis/mfi_rev_reg.py     # continuous regression, exploratory wellbei
 python3 analysis/mfi_rev_desc.py    # descriptives, validity table, funnel, 2x2 discordance
 python3 analysis/rev9_analysis.py   # funnel reconciliation, missing-item rule, recording-density controls,
                                     #   partial/adjusted models for the second profile, Figure 3 diagnostics
+python3 analysis/r2_reviewer_reanalysis.py  # item-level analysis, alternative scores, recording-density models,
+                                    #   redundancy and domain unidimensionality (added after peer review, October 2026)
 python3 analysis/mfi_rev_tables.py  # Tables 1-4 (HTML)
-FIG_DPI=300 python3 analysis/mfi_rev_figs.py  # Figures 1-3 + Supplementary Figure S1 (300 dpi)
+python3 analysis/build_supp_v2.py && python3 analysis/build_supp_v3.py  # Supplementary Tables S1-S4 (HTML)
+python3 analysis/build_supp_v4_jhp.py  # Additional file 2 as submitted to The Journal of Headache and Pain
+                                    #   (mfi_supp_jhp.html; labels and wording aligned with the manuscript)
+FIG_DPI=300 FIG_TITLES=0 python3 analysis/mfi_rev_figs.py  # Figures 1-3 + Supplementary Figure S1 (300 dpi;
+                                    #   titles are in the manuscript, as in figures/)
 ```
+
+`analysis/r2_reviewer_reanalysis.py` also checks the item wording against the in-app
+survey definition (`MFI_SURVEY_JSON`), which is not included here; without it, that
+self-check is skipped and all other results are unchanged.
 
 See [`ANALYSIS_PLAN.md`](ANALYSIS_PLAN.md), [`data_dictionary.md`](data_dictionary.md),
 and [`requirements.txt`](requirements.txt).
