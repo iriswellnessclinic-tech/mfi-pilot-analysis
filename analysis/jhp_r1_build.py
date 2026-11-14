@@ -15,7 +15,8 @@ Changes from the first submission, all made in response to peer review:
      3 no answer). It is now entered as female versus not female.
   3. Added: correlations among diary-based MMD, self-reported MMD, MIDAS and MIBS-4 in the same
      participants; self-reported MMD; included versus excluded participants; MMD strata;
-     additional adjustment; item subsets; the daily fulfilment rating; domain omega.
+     additional adjustment; item subsets; domain omega. Figure 1 and Table S3a give the counts at the
+     close of recruitment (18 July 2026) and the account deletions before the diary extraction.
   4. The split at the sample medians is descriptive only (Table S3l, Figure S1).
 Run from the repository root:  python3 analysis/jhp_r1_build.py
 """
@@ -65,7 +66,6 @@ mmd = (num('w28_migprop') * 28).where(d7); mig_raw = num('w28_mig').where(d7)
 srmmd = num('mig_days').where(num('mig_days') <= 28)
 midas, mibs = num('midas'), num('mibs4'); f1, f2 = num('f1'), num('f2')
 prev, cg = num('prev_use'), num('cgrp_use')
-ful = num('w28_fulfill').where(num('w28_fulfilln') >= 1)
 assert (M[f1_cols].mean(axis=1) / 6 * 100 - f1).abs().max() < 1e-6 and (M[f2_cols].mean(axis=1) / 6 * 100 - f2).abs().max() < 1e-6
 
 # ---------------------------------------------------------------- helpers
@@ -117,8 +117,14 @@ NUM['sample'] = dict(N=N, women=int((sexcode == 1).sum()), men=int((sexcode == 0
                      n81=int(d7.sum()), n_ge1=int((wdays >= 1).sum()))
 F = pd.read_csv('mfi_funnel.csv'); comp_f = F[F.status == 'completed']; ip = F[F.status == 'in_progress']
 noans = int((pd.to_numeric(ip['n_answered'], errors='coerce').fillna(0) == 0).sum())
-NUM['funnel'] = dict(offered=len(F), entered=len(comp_f) + len(ip), completed=len(comp_f), discontinued=len(ip), no_items=noans, some_items=len(ip) - noans,
-                     pct_of_entered=round(100 * len(comp_f) / (len(comp_f) + len(ip)), 1), pct_of_offered=round(100 * len(comp_f) / len(F), 1))
+# Counts at the close of recruitment (18 July 2026), recorded by extraction/mfi_full_analysis.ts on that day
+# (analysis-results, section R1). mfi_funnel.csv was extracted on 15 August 2026, after 10 account deletions.
+OFFERED0, ENTERED0, COMPLETED0 = 1190, 181, 116
+del_all = OFFERED0 - len(F); del_entered = ENTERED0 - (len(comp_f) + len(ip)); del_completed = COMPLETED0 - len(comp_f)
+assert (del_all, del_entered, del_completed) == (10, 1, 1) and len(ip) == ENTERED0 - COMPLETED0, (del_all, del_entered, del_completed)
+NUM['funnel'] = dict(offered=OFFERED0, entered=ENTERED0, completed=COMPLETED0, discontinued=len(ip), no_items=noans, some_items=len(ip) - noans,
+                     deleted=del_all, deleted_completed=del_completed, analysed=len(comp_f),
+                     pct_of_entered=round(100 * COMPLETED0 / ENTERED0, 1), pct_of_offered=round(100 * COMPLETED0 / OFFERED0, 1))
 
 # ================================================================ domain-level factor analysis
 Xd = D[[f'dom{i+1}' for i in range(11)]].apply(pd.to_numeric, errors='coerce'); Xd.columns = EN
@@ -241,13 +247,6 @@ SUBS = dict(generic_items=gen, n_generic=len(gen), n_specific=len(spe), r_gen_sp
             lr48={k: pcor(x, lr48) for k, x in [('MMD', mmd), ('MIDAS', midas), ('MIBS4', mibs)]}, r_lr48=scor(lr48, f1))
 NUM['subsets'] = SUBS
 
-# daily fulfilment rating (0-10), mean over the rated days in the 28-day window, participants with >=7 recorded days
-fu = ful.where(d7)
-FUL = dict(n=int(fu.notna().sum()), rated_days=miqr0(num('w28_fulfilln')[fu.notna()]), score=miqr(fu),
-           LR=pcor(fu, f1), MA=pcor(fu, f2), MMD=pcor(fu, mmd), MIDAS=pcor(fu, midas), MIBS4=pcor(fu, mibs),
-           LR_adj=pcor(fu, f1, COV + [mmd, midas, mibs]), MA_adj=pcor(fu, f2, COV + [mmd, midas, mibs]),
-           LR_ge3=pcor(fu.where(num('w28_fulfilln') >= 3), f1), LR_adj_ge3=pcor(fu.where(num('w28_fulfilln') >= 3), f1, COV + [mmd, midas, mibs]))
-NUM['fulfilment'] = FUL
 
 # groups
 def mwu(s, gflag):
@@ -374,13 +373,15 @@ Fn = NUM['funnel']
 h("<h1>Supplementary Table S3. Participant flow, correlations, sensitivity analyses, and exploratory analyses</h1>")
 h("<h2>S3a. Participant flow</h2>")
 table(["Stage", "n", "Note"], [
-    ["MFI questionnaire offered in the app", f"{Fn['offered']:,}", "The app did not log whether a user saw the offer."],
+    ["MFI questionnaire offered in the app", f"{Fn['offered']:,}", "At the close of recruitment (18 July 2026). The app did not log whether a user saw the offer."],
     ["Entered the consent flow", Fn['entered'], f"{100*Fn['entered']/Fn['offered']:.0f}% of those offered"],
-    ["Completed the MFI questionnaire (analysed)", Fn['completed'], f"{Fn['pct_of_entered']:.0f}% of those who entered the consent flow; {Fn['pct_of_offered']:.0f}% of those offered"],
-    ["Discontinued", Fn['discontinued'], f"{Fn['no_items']} answered no items; {Fn['some_items']} answered at least one item"]], numcols=(1,))
+    ["Completed the MFI questionnaire", Fn['completed'], f"{Fn['pct_of_entered']:.0f}% of those who entered the consent flow; {Fn['pct_of_offered']:.0f}% of those offered"],
+    ["Discontinued", Fn['discontinued'], f"{Fn['no_items']} answered no items; {Fn['some_items']} answered at least one item"],
+    ["Deleted the account before the diary extraction (15 August 2026)", Fn['deleted'], f"{Fn['deleted_completed']} participant who had completed the questionnaire and {Fn['deleted'] - Fn['deleted_completed']} users who had not entered the consent flow"],
+    ["Analysed", Fn['analysed'], ""]], numcols=(1,))
 lastpos = pd.to_numeric(ip.loc[pd.to_numeric(ip['n_answered'], errors='coerce').fillna(0) > 0, 'last_order_index'], errors='coerce').dropna()
 age_c = pd.to_numeric(comp_f['age'], errors='coerce').dropna(); age_i = pd.to_numeric(ip['age'], errors='coerce').dropna()
-h(f"<p class='note'>These numbers were extracted on 15 August 2026. One further participant completed the MFI questionnaire and deleted the account before that date; this participant and nine other users whose data were no longer in the database on that date are not included in any row. Among the {Fn['some_items']} participants who answered at least one item and then stopped, the median position of the last answered item was {np.median(lastpos):.0f} (IQR {np.percentile(lastpos,25):.0f} to {np.percentile(lastpos,75):.0f}). The participants who completed and those who discontinued had a similar age (mean {age_c.mean():.1f} versus {age_i.mean():.1f} years; Mann-Whitney p={stats.mannwhitneyu(age_c, age_i).pvalue:.2f}). In the account profiles, {100*(comp_f['sex']=='female').mean():.0f}% and {100*(ip['sex']=='female').mean():.0f}% were women; the sex reported in the questionnaire was used for Table 1 and for all adjusted analyses.</p>")
+h(f"<p class='note'>The counts of users offered, users who entered the consent flow, and participants who completed the questionnaire were recorded at the close of recruitment. The other analyses in this table used the extraction of 15 August 2026. Among the {Fn['some_items']} participants who answered at least one item and then stopped, the median position of the last answered item was {np.median(lastpos):.0f} (IQR {np.percentile(lastpos,25):.0f} to {np.percentile(lastpos,75):.0f}). The {len(comp_f)} analysed participants and the {len(ip)} participants who discontinued had a similar age (mean {age_c.mean():.1f} versus {age_i.mean():.1f} years; Mann-Whitney p={stats.mannwhitneyu(age_c, age_i).pvalue:.2f}). In the account profiles, {100*(comp_f['sex']=='female').mean():.0f}% and {100*(ip['sex']=='female').mean():.0f}% were women; the sex reported in the questionnaire was used for Table 1 and for all adjusted analyses.</p>")
 
 LAB = {'LR': 'Life Restoration score', 'MA': 'Migraine Agency score', 'MMD': 'Diary-based MMD', 'srMMD': 'Self-reported MMD', 'MIDAS': 'MIDAS score', 'MIBS4': 'MIBS-4 score'}
 def mat(Cd, title, note):
@@ -450,20 +451,15 @@ for fac, flab in [('LR', 'Life Restoration'), ('MA', 'Migraine Agency')]:
         rows.append([flab, "28 items (without items 72, 74, 79, and 80)", f"{SUBS['r_ma28']['r']:.3f}"] + [ci(SUBS['ma28'][k]) for k in ['MMD', 'MIDAS', 'MIBS4']])
 table(["Factor", "Score", "ρ with the main score", "Diary-based MMD (n=81)", "MIDAS score (n=115)", "MIBS-4 score (n=115)"], rows, numcols=(2, 3, 4, 5))
 
-h("<h2>S3k. Additional adjustment and the daily fulfilment rating (exploratory)</h2>")
+h("<h2>S3k. Additional adjustment (exploratory)</h2>")
 A = ADD
-h(f"<p class='note'>Upper rows: partial Spearman correlations with additional covariates. In a regression of the ranks, the MIDAS score and the MIBS-4 score together explained {100*A['R2_LR_midas_mibs_115'][0]:.0f}% of the variance of the Life Restoration score (n={A['R2_LR_midas_mibs_115'][1]}) and {100*A['R2_MA_midas_mibs_115'][0]:.0f}% of the variance of the Migraine Agency score. In the {A['R2_LR_all_81'][1]} participants with diary-based MMD, diary-based MMD alone explained {100*A['R2_LR_mmd_81'][0]:.0f}% of the variance of the Life Restoration score, the MIDAS score and the MIBS-4 score together explained {100*A['R2_LR_midas_mibs_81'][0]:.0f}%, and the three measures together explained {100*A['R2_LR_all_81'][0]:.0f}%. Lower rows: in the daily diary, users could rate how fulfilling the day had been (0 = not at all, 10 = very). The fulfilment rating is the mean of these daily ratings over the 28-day window, in participants with at least seven recorded days and at least one rating (n={FUL['n']}; median number of rated days {FUL['rated_days']}; median rating {FUL['score']}). This single item has not been validated.</p>")
+h(f"<p class='note'>Partial Spearman correlations with additional covariates. In a regression of the ranks, the MIDAS score and the MIBS-4 score together explained {100*A['R2_LR_midas_mibs_115'][0]:.0f}% of the variance of the Life Restoration score (n={A['R2_LR_midas_mibs_115'][1]}) and {100*A['R2_MA_midas_mibs_115'][0]:.0f}% of the variance of the Migraine Agency score. In the {A['R2_LR_all_81'][1]} participants with diary-based MMD, diary-based MMD alone explained {100*A['R2_LR_mmd_81'][0]:.0f}% of the variance of the Life Restoration score, the MIDAS score and the MIBS-4 score together explained {100*A['R2_LR_midas_mibs_81'][0]:.0f}%, and the three measures together explained {100*A['R2_LR_all_81'][0]:.0f}%.</p>")
 rows = [["Life Restoration score and diary-based MMD", "age, sex, MIDAS score, MIBS-4 score", A['LR_MMD_adj_midas_mibs']['n'], ci(A['LR_MMD_adj_midas_mibs'])],
         ["Life Restoration score and MIDAS score", "age, sex, diary-based MMD, MIBS-4 score", A['LR_MIDAS_adj_mmd_mibs']['n'], ci(A['LR_MIDAS_adj_mmd_mibs'])],
         ["Life Restoration score and MIBS-4 score", "age, sex, diary-based MMD, MIDAS score", A['LR_MIBS_adj_mmd_midas']['n'], ci(A['LR_MIBS_adj_mmd_midas'])]]
 for fl_, lab in [('LR', 'Life Restoration score'), ('MA', 'Migraine Agency score')]:
     for k_, ml in [('MMD', 'diary-based MMD'), ('MIDAS', 'MIDAS score'), ('MIBS', 'MIBS-4 score')]:
         d_ = A[f'{fl_}_{k_}_adj_tx']; rows.append([f"{lab} and {ml}", "age, sex, preventive medication, CGRP-related drug", d_['n'], ci(d_)])
-for k_, lab in [('LR', 'Life Restoration score'), ('MA', 'Migraine Agency score'), ('MMD', 'diary-based MMD'), ('MIDAS', 'MIDAS score'), ('MIBS4', 'MIBS-4 score')]:
-    rows.append([f"Fulfilment rating and {lab}", "age, sex", FUL[k_]['n'], ci(FUL[k_])])
-rows.append(["Fulfilment rating and Life Restoration score", "age, sex, diary-based MMD, MIDAS score, MIBS-4 score", FUL['LR_adj']['n'], ci(FUL['LR_adj'])])
-rows.append(["Fulfilment rating and Migraine Agency score", "age, sex, diary-based MMD, MIDAS score, MIBS-4 score", FUL['MA_adj']['n'], ci(FUL['MA_adj'])])
-rows.append(["Fulfilment rating (at least three rated days) and Life Restoration score", "age, sex, diary-based MMD, MIDAS score, MIBS-4 score", FUL['LR_adj_ge3']['n'], ci(FUL['LR_adj_ge3'])])
 table(["Correlation", "Adjusted for", "n", "ρ [95% CI]"], rows, numcols=(2, 3))
 
 h("<h2>S3l. Split at the sample medians of diary-based MMD and each MFI factor score (descriptive; n=81)</h2>")
@@ -503,6 +499,30 @@ open('mfi_supp_jhp_r1.html', 'w', encoding='utf-8').write(re.sub(r'(?<![\d.])[+-
 DPI = int(os.environ.get("FIG_DPI", "150"))
 plt.rcParams.update({"font.size": 9, "font.family": "DejaVu Sans", "axes.linewidth": 0.8, "savefig.dpi": DPI, "figure.dpi": 110})
 BLUE, ORANGE, GRAY = "#0072B2", "#E69F00", "#666666"
+# Figure 1
+from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
+fig, ax = plt.subplots(figsize=(6.8, 7.2)); ax.axis("off"); ax.set_xlim(0, 10); ax.set_ylim(0, 11)
+GREEN = "#009E73"
+def box(x, y, w, hgt, txt, fc="#EAF2F8", ec=BLUE, fs=8.3):
+    ax.add_patch(FancyBboxPatch((x - w / 2, y - hgt / 2), w, hgt, boxstyle="round,pad=0.02,rounding_size=0.12", fc=fc, ec=ec, lw=1.2))
+    ax.text(x, y, txt, ha="center", va="center", fontsize=fs)
+def arrow(x1, y1, x2, y2):
+    ax.add_patch(FancyArrowPatch((x1, y1), (x2, y2), arrowstyle="-|>", mutation_scale=11, lw=1.05, color=GRAY))
+Fn = NUM['funnel']
+box(3.2, 10.3, 4.8, 0.95, f"MFI questionnaire offered in the app\nN = {Fn['offered']:,}\n(views of the offer not logged)")
+box(3.2, 8.7, 4.8, 0.7, f"Entered the consent flow\nn = {Fn['entered']}")
+box(3.2, 7.1, 4.8, 0.7, f"Completed the MFI questionnaire\nn = {Fn['completed']}")
+box(3.2, 5.5, 4.8, 0.7, f"Analysed\nn = {Fn['analysed']}")
+box(8.05, 7.9, 3.5, 1.15, f"Discontinued n = {Fn['discontinued']}\n- answered no items: {Fn['no_items']}\n- answered ≥1 item: {Fn['some_items']}", fc="#FDF2E9", ec=ORANGE, fs=8.0)
+box(8.05, 6.3, 3.5, 0.95, f"Deleted the account before\nthe diary extraction\nn = {Fn['deleted_completed']}", fc="#FDF2E9", ec=ORANGE, fs=8.0)
+arrow(3.2, 9.82, 3.2, 9.05); arrow(3.2, 8.35, 3.2, 7.45); arrow(3.2, 6.75, 3.2, 5.85)
+arrow(3.2, 7.9, 6.3, 7.9); arrow(3.2, 6.3, 6.3, 6.3)
+box(3.2, 4.0, 4.4, 0.7, f"≥1 recorded diary day\nn = {NUM['sample']['n_ge1']}", fc="#E8F6F0", ec=GREEN, fs=8.0)
+box(3.2, 2.6, 4.4, 0.7, f"≥7 recorded days (diary-based MMD analysis)\nn = {NUM['sample']['n81']}", fc="#E8F6F0", ec=GREEN, fs=8.0)
+arrow(3.2, 5.15, 3.2, 4.35); arrow(3.2, 3.65, 3.2, 2.95)
+ax.text(8.05, 3.3, "Recruitment closed 18 July 2026\nDiary extracted 15 August 2026", ha="center", fontsize=7.6, style="italic", color=GRAY)
+plt.tight_layout(); plt.savefig("fig1_flow_r1.png", bbox_inches="tight"); plt.close()
+
 # Figure 2
 order = sorted(range(11), key=lambda i: (0 if i in F1_IDX else 1, -(Lm[i, 0] if i in F1_IDX else Lm[i, 1])))
 fig, ax = plt.subplots(figsize=(7.8, 6.4)); yy = np.arange(11)[::-1]; bw = 0.38
@@ -548,4 +568,4 @@ def panelS1(ax, s, label, letter, sp_):
     ax.set_xlim(-0.8, 29.5); ax.set_ylim(-4, 104); ax.set_title(f"{letter}  {label} score", fontsize=9.2, loc="left", weight="bold"); ax.spines[['top', 'right']].set_visible(False)
 fig, (a1, a2) = plt.subplots(1, 2, figsize=(10.8, 4.9)); panelS1(a1, f1, 'Life Restoration', 'A', SPL['LR']); panelS1(a2, f2, 'Migraine Agency', 'B', SPL['MA'])
 plt.tight_layout(); plt.savefig("figS1_median_split.png", bbox_inches="tight"); plt.close()
-print("wrote jhp_r1_numbers.json, mfi_supp_jhp_r1.html, fig2_loadings.png, fig3_scatter.png, figS1_median_split.png")
+print("wrote jhp_r1_numbers.json, mfi_supp_jhp_r1.html, fig1_flow_r1.png, fig2_loadings.png, fig3_scatter.png, figS1_median_split.png")
