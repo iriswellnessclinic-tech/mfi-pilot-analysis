@@ -2,7 +2,7 @@
 
 Analysis code and documentation for the study:
 
-> **Item generation and preliminary psychometric evaluation of a candidate item set for the Migraine Freedom Index: an exploratory linked-diary study**
+> **Item generation and preliminary psychometric evaluation of the Migraine Freedom Index: an exploratory study linked to a headache-diary application**
 > (first submitted as "Development of the Migraine Freedom Index, a patient-reported measure of migraine freedom in daily life: an exploratory linked-diary study"; cross-sectional digital-health pilot, frozen dataset n = 116, data cut 18 July 2026, 115 after one account deletion)
 
 This repository is provided for **transparency and to facilitate future independent
