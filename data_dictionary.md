@@ -24,7 +24,7 @@ scripts can be read and audited.
 | `w28_days` | recorded diary days within the fixed 28-day pre-completion window |
 | `w28_ha`, `w28_haprop` | headache days / headache-day proportion in the window |
 | `w28_free` | headache-free days in the window |
-| `w28_fulfill`, `w28_fulfilln` | mean headache-free-day wellbeing; n of such days |
+| `w28_fulfill`, `w28_fulfilln` | mean of the daily fulfilment ratings ("Was today fulfilling?", 0-10) over all rated days in the window, headache days included; number of rated days. (Earlier versions of this dictionary and of the analysis plan described it as headache-free-day wellbeing, which was inaccurate.) |
 | `w28_mibs`, `w28_mibsn` | mean daily interictal-burden score; n of days |
 | `dom1`…`dom11` | the 11 prespecified domain scores (0–100), inputs to the domain-level EFA |
 | `q0_18`…`q<d>_<k>` | individual scored item responses (0–6), grouped by domain index |

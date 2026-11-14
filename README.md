@@ -2,8 +2,8 @@
 
 Analysis code and documentation for the study:
 
-> **Development of the Migraine Freedom Index, a patient-reported measure of migraine freedom in daily life: an exploratory linked-diary study**
-> (cross-sectional digital-health pilot, frozen dataset n = 116, data cut 18 July 2026)
+> **Item generation and preliminary psychometric evaluation of a candidate item set for the Migraine Freedom Index: an exploratory linked-diary study**
+> (first submitted as "Development of the Migraine Freedom Index, a patient-reported measure of migraine freedom in daily life: an exploratory linked-diary study"; cross-sectional digital-health pilot, frozen dataset n = 116, data cut 18 July 2026, 115 after one account deletion)
 
 This repository is provided for **transparency and to facilitate future independent
 verification**. The application operator is also the first author, data custodian,
@@ -48,7 +48,19 @@ python3 analysis/build_supp_v4_jhp.py  # Additional file 2 as submitted to The J
                                     #   (mfi_supp_jhp.html; labels and wording aligned with the manuscript)
 FIG_DPI=300 FIG_TITLES=0 python3 analysis/mfi_rev_figs.py  # Figures 1-3 + Supplementary Figure S1 (300 dpi;
                                     #   titles are in the manuscript, as in figures/)
+
+# 3) Revision 1 for The Journal of Headache and Pain (November 2026). Recomputes every reported
+#    statistic and writes jhp_r1_numbers.json, mfi_supp_jhp_r1.html (Additional file 2) and the
+#    revised Figures 2, 3 and S1 (figures/fig2_loadings.png, fig3_scatter.png, figS1_median_split.png).
+FIG_DPI=300 python3 analysis/jhp_r1_build.py
 ```
+
+**Changes in revision 1.** The scripts of the first submission used factor_analyzer's
+`method='principal'`, which extracts principal components; the manuscript had called this
+principal-axis factoring. `jhp_r1_build.py` uses minimum-residual extraction (`method='minres'`)
+and keeps the component solution for comparison. The sex covariate is now female versus not
+female (the earlier scripts entered the questionnaire code). The dated analysis plan
+(`ANALYSIS_PLAN.md`, 19 July 2026) is unchanged; the changes from it are listed in the manuscript.
 
 `analysis/r2_reviewer_reanalysis.py` also checks the item wording against the in-app
 survey definition (`MFI_SURVEY_JSON`), which is not included here; without it, that
