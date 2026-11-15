@@ -4,7 +4,7 @@
 Recomputes every reported statistic from the frozen matrix (mfi_matrix.csv, n = 115) and writes
   - jhp_r1_numbers.json      numbers quoted in the manuscript and the response letter
   - mfi_supp_jhp_r1.html     Additional file 2 (Supplementary Tables S1 to S4)
-  - fig2_loadings.png, fig3_scatter.png, figS1_median_split.png   (FIG_DPI=300 for submission)
+  - fig1_flow_r1.png, fig2_loadings.png, fig3_scatter.png   (FIG_DPI=300 for submission)
 
 Changes from the first submission, all made in response to peer review:
   1. Factor extraction. The first submission called factor_analyzer's method='principal'
@@ -17,7 +17,8 @@ Changes from the first submission, all made in response to peer review:
      participants; self-reported MMD; included versus excluded participants; MMD strata;
      additional adjustment; item subsets; domain omega. Figure 1 and Table S3a give the counts at the
      close of recruitment (18 July 2026) and the account deletions before the diary extraction.
-  4. The split at the sample medians is descriptive only (Table S3l, Figure S1).
+  4. The split at the sample medians was removed, as Reviewer 1 suggested (no Table S3l, no Figure S1).
+     It is still computed below (median_split in jhp_r1_numbers.json) but not reported.
 Run from the repository root:  python3 analysis/jhp_r1_build.py
 """
 import html, json, os, re, warnings
@@ -402,8 +403,8 @@ h("<h2>S3d. Sensitivity analyses of the correlations with diary-based MMD (parti
 S = SENS
 rows = [[("Diary-based MMD, at least 7 recorded days (main analysis)" if t == 7 else f"Diary-based MMD, at least {t} recorded days" if t < 28 else "Diary-based MMD, all 28 days recorded"), S[f'ge{t}']['LR']['n'], ci(S[f'ge{t}']['LR']), ci(S[f'ge{t}']['MA'])] for t in [7, 14, 21, 28]]
 rows += [["At least 7 recorded days, with additional adjustment for the number of recorded days", S['adj_recorded']['LR']['n'], ci(S['adj_recorded']['LR']), ci(S['adj_recorded']['MA'])],
-         ["Raw number of migraine days instead of the estimated MMD, at least 7 recorded days", S['raw_days']['LR']['n'], ci(S['raw_days']['LR']), ci(S['raw_days']['MA'])],
-         [f"At least 7 recorded days, excluding the {S['excl_no_migraine']['n_excl']} participants in whom neither classification identified migraine", S['excl_no_migraine']['LR']['n'], ci(S['excl_no_migraine']['LR']), ci(S['excl_no_migraine']['MA'])],
+         ["Raw number of migraine days instead of diary-based MMD, at least 7 recorded days", S['raw_days']['LR']['n'], ci(S['raw_days']['LR']), ci(S['raw_days']['MA'])],
+         [f"At least 7 recorded days, excluding the {S['ge7']['LR']['n'] - S['excl_no_migraine']['LR']['n']} participants in whom neither classification identified migraine", S['excl_no_migraine']['LR']['n'], ci(S['excl_no_migraine']['LR']), ci(S['excl_no_migraine']['MA'])],
          [f"At least 7 recorded days, excluding the participant with the lowest Life Restoration score (score {S['excl_lowest_LR']['lr']:.0f}, diary-based MMD {S['excl_lowest_LR']['mmd']:.0f})", S['excl_lowest_LR']['LR']['n'], ci(S['excl_lowest_LR']['LR']), ci(S['excl_lowest_LR']['MA'])],
          ["Diary-based proportion of headache days (the day-count measure in the dated analysis plan), at least 7 recorded days", S['haprop']['LR']['n'], ci(S['haprop']['LR']), ci(S['haprop']['MA'])],
          ["Self-reported MMD (questionnaire)", COR['LR~srMMD']['n'], ci(COR['LR~srMMD']), ci(COR['MA~srMMD'])],
@@ -461,15 +462,6 @@ for fl_, lab in [('LR', 'Life Restoration score'), ('MA', 'Migraine Agency score
     for k_, ml in [('MMD', 'diary-based MMD'), ('MIDAS', 'MIDAS score'), ('MIBS', 'MIBS-4 score')]:
         d_ = A[f'{fl_}_{k_}_adj_tx']; rows.append([f"{lab} and {ml}", "age, sex, preventive medication, CGRP-related drug", d_['n'], ci(d_)])
 table(["Correlation", "Adjusted for", "n", "ρ [95% CI]"], rows, numcols=(2, 3))
-
-h("<h2>S3l. Split at the sample medians of diary-based MMD and each MFI factor score (descriptive; n=81)</h2>")
-sl, sm = SPL['LR'], SPL['MA']
-h(f"<p class='note'>Each participant was classified as above the sample median or not (a value equal to the median was classified as not above). The sample medians were {sl['mmd_median']:.0f} days for diary-based MMD, {sl['score_median']:.0f} for the Life Restoration score, and {sm['score_median']:.0f} for the Migraine Agency score; {sl['ties_mmd']} participants had a diary-based MMD equal to the median. The sample medians are not clinical cut-offs. For two variables with a correlation of {ru:+.2f} (the unadjusted Spearman correlation between diary-based MMD and the Life Restoration score) and a bivariate normal distribution, {SPL['expected_same_side']:.0f}% of participants are expected to be above both medians or not above both. This classification therefore gives no information beyond the correlation. Values are n and median (IQR).</p>")
-def srow(sp_, lab, other):
-    names = {(False, True): f"MMD not above the median, {lab} above the median", (True, False): f"MMD above the median, {lab} not above the median", (False, False): f"MMD not above the median, {lab} not above the median", (True, True): f"MMD above the median, {lab} above the median"}
-    return [[names[(r_['hf'], r_['hs'])], r_['n'], f"{100*r_['n']/sp_['n']:.0f}%", r_['midas'], r_[other]] for r_ in sp_['rows']]
-table(["Group (Life Restoration score)", "n", "%", "MIDAS score", "Migraine Agency score"], srow(sl, "Life Restoration score", 'ma'), numcols=(1, 2, 3, 4))
-table(["Group (Migraine Agency score)", "n", "%", "MIDAS score", "Life Restoration score"], srow(sm, "Migraine Agency score", 'lr'), numcols=(1, 2, 3, 4))
 
 # ---- S4
 I = NUM['items']
@@ -555,17 +547,4 @@ def panel3(ax, s, label, letter, key):
 fig, (axA, axB) = plt.subplots(1, 2, figsize=(10.4, 4.5)); panel3(axA, f1, 'Life Restoration', 'A', 'LR~MMD'); panel3(axB, f2, 'Migraine Agency', 'B', 'MA~MMD')
 axA.legend(loc="upper right", fontsize=8, frameon=False); plt.tight_layout(); plt.savefig("fig3_scatter.png", bbox_inches="tight"); plt.close()
 
-def panelS1(ax, s, label, letter, sp_):
-    m = mmd.notna() & s.notna(); x = mmd[m].values.astype(float); y = s[m].values.astype(float)
-    hmv, smv = np.median(x), np.median(y)
-    ax.scatter(x, y, s=30, color=GRAY, alpha=0.8, edgecolor="white", linewidth=0.4, zorder=2)
-    ax.axvline(hmv, color="k", ls="--", lw=0.8, zorder=1); ax.axhline(smv, color="k", ls="--", lw=0.8, zorder=1)
-    pos = {(False, True): (0.02, 0.98, 'left', 'top'), (True, True): (0.98, 0.98, 'right', 'top'), (False, False): (0.02, 0.02, 'left', 'bottom'), (True, False): (0.60, 0.02, 'right', 'bottom')}
-    for r_ in sp_['rows']:
-        px, py, ha, va = pos[(r_['hf'], r_['hs'])]
-        ax.text(px, py, f"n = {r_['n']}", transform=ax.transAxes, ha=ha, va=va, fontsize=8.2, bbox=dict(boxstyle="round,pad=0.25", fc="white", ec=GRAY, alpha=0.9), zorder=4)
-    ax.set_xlabel(f"Diary-based MMD (days); dashed line = sample median ({hmv:.0f})"); ax.set_ylabel(f"{label} score; dashed line = sample median ({smv:.0f})")
-    ax.set_xlim(-0.8, 29.5); ax.set_ylim(-4, 104); ax.set_title(f"{letter}  {label} score", fontsize=9.2, loc="left", weight="bold"); ax.spines[['top', 'right']].set_visible(False)
-fig, (a1, a2) = plt.subplots(1, 2, figsize=(10.8, 4.9)); panelS1(a1, f1, 'Life Restoration', 'A', SPL['LR']); panelS1(a2, f2, 'Migraine Agency', 'B', SPL['MA'])
-plt.tight_layout(); plt.savefig("figS1_median_split.png", bbox_inches="tight"); plt.close()
-print("wrote jhp_r1_numbers.json, mfi_supp_jhp_r1.html, fig1_flow_r1.png, fig2_loadings.png, fig3_scatter.png, figS1_median_split.png")
+print("wrote jhp_r1_numbers.json, mfi_supp_jhp_r1.html, fig1_flow_r1.png, fig2_loadings.png, fig3_scatter.png")

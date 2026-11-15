@@ -51,7 +51,7 @@ FIG_DPI=300 FIG_TITLES=0 python3 analysis/mfi_rev_figs.py  # Figures 1-3 + Suppl
 
 # 3) Revision 1 for The Journal of Headache and Pain (November 2026). Recomputes every reported
 #    statistic and writes jhp_r1_numbers.json, mfi_supp_jhp_r1.html (Additional file 2) and the
-#    revised Figures 2, 3 and S1 (figures/fig2_loadings.png, fig3_scatter.png, figS1_median_split.png).
+#    revised Figures 1-3 (figures/fig1_flow_r1.png, fig2_loadings.png, fig3_scatter.png).
 FIG_DPI=300 python3 analysis/jhp_r1_build.py
 ```
 
@@ -59,7 +59,8 @@ FIG_DPI=300 python3 analysis/jhp_r1_build.py
 `method='principal'`, which extracts principal components; the manuscript had called this
 principal-axis factoring. `jhp_r1_build.py` uses minimum-residual extraction (`method='minres'`)
 and keeps the component solution for comparison. The sex covariate is now female versus not
-female (the earlier scripts entered the questionnaire code). The dated analysis plan
+female (the earlier scripts entered the questionnaire code). The split at the sample medians
+(former Table 4, Table S3l and Figure S1) was removed, as Reviewer 1 suggested. The dated analysis plan
 (`ANALYSIS_PLAN.md`, 19 July 2026) is unchanged; the changes from it are listed in the manuscript.
 
 `analysis/r2_reviewer_reanalysis.py` also checks the item wording against the in-app
@@ -73,7 +74,8 @@ and [`requirements.txt`](requirements.txt).
 
 Approved by the Institutional Ethics Committee of the Saitama Neuropsychiatric
 Institute (approval number **SNI26-006**, approved **9 July 2026**). All participants
-gave electronic informed consent. Recruitment window **10–18 July 2026**.
+gave electronic informed consent. Recruitment opened on **10 July 2026** and closed on
+**18 July 2026** (00:00 Japan Standard Time).
 
 ## License
 
