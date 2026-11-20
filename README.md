@@ -63,6 +63,9 @@ female (the earlier scripts entered the questionnaire code). The split at the sa
 (former Table 4, Table S3l and Figure S1) was removed, as Reviewer 1 suggested. The dated analysis plan
 (`ANALYSIS_PLAN.md`, 19 July 2026) is unchanged; the changes from it are listed in the manuscript.
 
+**Changes in revision 2.** No analysis or number changed. The note of Table S1 in Additional
+file 2 now names the licence of the items (see License below).
+
 `analysis/r2_reviewer_reanalysis.py` also checks the item wording against the in-app
 survey definition (`MFI_SURVEY_JSON`), which is not included here; without it, that
 self-check is skipped and all other results are unchanged.
@@ -81,3 +84,9 @@ gave electronic informed consent. Recruitment opened on **10 July 2026** and clo
 
 Code is released under the MIT License ([`LICENSE`](LICENSE)). This license covers
 the code only, not the data or the questionnaire content.
+
+The 82 MFI items and the scoring rule (Additional files 1 and 2 of the article) are licensed
+under the Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International licence
+([CC BY-NC-ND 4.0](https://creativecommons.org/licenses/by-nc-nd/4.0/)). In addition, they may be
+used free of charge in clinical practice. Commercial use, translation, or modification requires
+permission from the corresponding authors.
